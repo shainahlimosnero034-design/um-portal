@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UM Student Portal – Advanced</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f9;
+        }
+        header {
+            background: #7b1113;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 10px;
+        }
+        button {
+            background: #7b1113;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background: #a4161a;
+        }
+        h2 {
+            color: #7b1113;
+        }
+        .section-title {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .list-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .list-item input {
+            flex: 1;
+        }
+        .info {
+            margin-top: 20px;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>University of Mindanao</h1>
+    <p>Advanced Editable Student Portal</p>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h2>Student Credentials</h2>
+        <label>Name:</label>
+        <input type="text" id="name">
+
+        <label>Student ID:</label>
+        <input type="text" id="studentId">
+
+        <label>Course:</label>
+        <input type="text" id="course">
+
+        <label>Year Level:</label>
+        <input type="text" id="year">
+    </div>
+
+    <div class="card">
+        <h2>Subjects & Grades</h2>
+        <div id="subjectsList"></div>
+        <button onclick="addSubject()">+ Add Subject</button>
+    </div>
+
+    <div class="card">
+        <h2>Evaluations & SPRs</h2>
+        <div id="evaluationsList"></div>
+        <button onclick="addEvaluation()">+ Add Evaluation</button>
+    </div>
+
+    <div class="card">
+        <button onclick="saveAll()">Save All</button>
+        <div class="info" id="displayInfo"></div>
+    </div>
+</div>
+
+<script>
+    // ===== Subjects =====
+    function addSubject(name='', grade='') {
+        const list = document.getElementById('subjectsList');
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+            <input type="text" placeholder="Subject" value="${name}">
+            <input type="text" placeholder="Grade" value="${grade}">
+            <button onclick="this.parentElement.remove()">Remove</button>
+        `;
+        list.appendChild(div);
+    }
+
+    // ===== Evaluations =====
+    function addEvaluation(evalScore='', spr='') {
+        const list = document.getElementById('evaluationsList');
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.innerHTML = `
+            <input type="text" placeholder="Evaluation" value="${evalScore}">
+            <input type="text" placeholder="SPR" value="${spr}">
+            <button onclick="this.parentElement.remove()">Remove</button>
+        `;
+        list.appendChild(div);
+    }
+
+    // ===== Save All =====
+    function saveAll() {
+        // Save credentials
+        localStorage.setItem('name', document.getElementById('name').value);
+        localStorage.setItem('studentId', document.getElementById('studentId').value);
+        localStorage.setItem('course', document.getElementById('course').value);
+        localStorage.setItem('year', document.getElementById('year').value);
+
+        // Save subjects
+        const subjects = [];
+        document.querySelectorAll('#subjectsList .list-item').forEach(item => {
+            subjects.push({
+                name: item.children[0].value,
+                grade: item.children[1].value
+            });
+        });
+        localStorage.setItem('subjects', JSON.stringify(subjects));
+
+        // Save evaluations
+        const evaluations = [];
+        document.querySelectorAll('#evaluationsList .list-item').forEach(item => {
+            evaluations.push({
+                evaluation: item.children[0].value,
+                spr: item.children[1].value
+            });
+        });
+        localStorage.setItem('evaluations', JSON.stringify(evaluations));
+
+        displayAll();
+    }
+
+    // ===== Display All =====
+    function displayAll() {
+        // Load credentials
+        document.getElementById('name').value = localStorage.getItem('name') || '';
+        document.getElementById('studentId').value = localStorage.getItem('studentId') || '';
+        document.getElementById('course').value = localStorage.getItem('course') || '';
+        document.getElementById('year').value = localStorage.getItem('year') || '';
+
+        // Load subjects
+        const subjectsList = document.getElementById('subjectsList');
+        subjectsList.innerHTML = '';
+        const subjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+        subjects.forEach(s => addSubject(s.name, s.grade));
+
+        // Load evaluations
+        const evaluationsList = document.getElementById('evaluationsList');
+        evaluationsList.innerHTML = '';
+        const evaluations = JSON.parse(localStorage.getItem('evaluations') || '[]');
+        evaluations.forEach(e => addEvaluation(e.evaluation, e.spr));
+
+        // Display summary
+        const display = document.getElementById('displayInfo');
+        let html = `<h3>Saved Information</h3>`;
+        html += `<p><strong>Name:</strong> ${localStorage.getItem('name') || ''}</p>`;
+        html += `<p><strong>Student ID:</strong> ${localStorage.getItem('studentId') || ''}</p>`;
+        html += `<p><strong>Course:</strong> ${localStorage.getItem('course') || ''}</p>`;
+        html += `<p><strong>Year Level:</strong> ${localStorage.getItem('year') || ''}</p>`;
+
+        html += `<h4>Subjects & Grades</h4>`;
+        const subjectsDisplay = subjects || [];
+        subjectsDisplay.forEach(s => {
+            html += `<p>${s.name} - ${s.grade}</p>`;
+        });
+
+        html += `<h4>Evaluations & SPRs</h4>`;
+        const evaluationsDisplay = evaluations || [];
+        evaluationsDisplay.forEach(e => {
+            html += `<p>${e.evaluation} - ${e.spr}</p>`;
+        });
+
+        display.innerHTML = html;
+    }
+
+    // Load saved data on page load
+    window.onload = displayAll;
+</script>
+
+</body>
+</html>
